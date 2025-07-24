@@ -6,10 +6,10 @@ import PackageDescription
 let package = Package(
     name: "AnalyticsProvider",
 	platforms: [
-		.iOS(.v17),
-		.watchOS(.v10),
-		.macOS(.v14),
-		.visionOS(.v2)
+		.iOS(.v15),
+		.watchOS(.v8),
+		.macOS(.v12),
+		.visionOS(.v1)
 	],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
