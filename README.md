@@ -61,14 +61,25 @@ analytics.register(providers: [FirebaseProvider(), MixpanelProvider()])
 ### 3. Track Events
 
 ```swift
-// Define your events
-struct ButtonClickEvent: EventType {
-    let name = "button_clicked"
-    let parameters = ["button_id": "login"]
+// Define your events using enums
+enum AppEvents: String, EventType {
+    case buttonClicked = "button_clicked"
+    case userLogin = "user_login"
+    
+    var name: String {
+        self.rawValue
+    }
+    
+    var parameters: [String: AnyHashable]? {
+        switch self {
+        case .buttonClicked: return ["button_id": "login"]
+        case .userLogin: return ["method": "email"]
+        }
+    }
 }
 
 // Log events
-analytics.log(ButtonClickEvent())
+analytics.log(AppEvents.buttonClicked)
 ```
 
 ### 4. SwiftUI Integration
@@ -79,93 +90,10 @@ struct ContentView: View {
         Button("Login") {
             // Action
         }
-        .analyticsOnTap(ButtonClickEvent())
-        .analyticsView(HomeView())
+        .analyticsOnTap(AppEvents.buttonClicked)
+        .analyticsView(AppViews.homeScreen)
         .environment(\.analytics, analytics)
     }
-}
-```
-
-## API Reference
-
-### Core Protocols
-
-#### `ViewType`
-Protocol for trackable views:
-```swift
-public protocol ViewType: Sendable {
-    var name: String { get }
-    var parameters: [AnyHashable: AnyHashable]? { get }
-}
-```
-
-#### `EventType`
-Protocol for trackable events:
-```swift
-public protocol EventType: Sendable {
-    var name: String { get }
-    var parameters: [AnyHashable: AnyHashable]? { get }
-}
-```
-
-#### `PurchaseType`
-Protocol for trackable purchases:
-```swift
-public protocol PurchaseType: Sendable {
-    var transactionId: String { get }
-    var price: Double { get }
-    var name: String { get }
-    var currency: String { get }
-    var category: String { get }
-    var sku: String { get }
-    var success: Bool { get }
-    var coupon: String? { get }
-}
-```
-
-#### `AnalyticsProvider`
-Protocol for implementing analytics providers:
-```swift
-public protocol AnalyticsProvider: Sendable {
-    func log(_ view: ViewType)
-    func log(_ event: EventType)
-    func log(_ purchase: PurchaseType)
-    func setUserProperty(_ value: String?, for key: String)
-}
-```
-
-### Analytics Manager
-
-#### `Analytics`
-Main class for coordinating multiple providers:
-```swift
-@MainActor
-public class Analytics {
-    public init()
-    public func register(providers: [AnalyticsProvider])
-    public func log(_ view: ViewType)
-    public func log(_ event: EventType)
-    public func log(_ purchase: PurchaseType)
-    public func setUserProperty(_ value: String?, for key: String)
-}
-```
-
-### SwiftUI Extensions
-
-#### View Modifiers
-```swift
-extension View {
-    public func analyticsOnTap(_ event: EventType) -> some View
-    public func analyticsOnTap(_ events: EventType...) -> some View
-    public func analyticsView(_ view: ViewType) -> some View
-}
-```
-
-#### Environment Values
-```swift
-extension EnvironmentValues {
-    @Entry
-    public var analytics: Analytics?
 }
 ```
 
@@ -173,19 +101,25 @@ extension EnvironmentValues {
 
 ### Custom Event Tracking
 ```swift
-struct ProductViewEvent: EventType {
-    let name = "product_viewed"
-    let parameters: [AnyHashable: AnyHashable]?
+enum AppEvents: String, EventType {
+    case productViewed = "product_viewed"
+    case userLogin = "user_login"
+    case buttonClicked = "button_clicked"
     
-    init(productId: String, category: String) {
-        parameters = [
-            "product_id": productId,
-            "category": category
-        ]
+    var name: String {
+        self.rawValue
+    }
+    
+    var parameters: [String: AnyHashable]? {
+        switch self {
+        case .productViewed: return ["product_id": "123", "category": "electronics"]
+        case .userLogin: return ["method": "email"]
+        case .buttonClicked: return ["button_id": "login"]
+        }
     }
 }
 
-analytics.log(ProductViewEvent(productId: "123", category: "electronics"))
+analytics.log(AppEvents.productViewed)
 ```
 
 ### Purchase Tracking
@@ -215,13 +149,32 @@ analytics.log(purchase)
 
 ### SwiftUI Automatic Tracking
 ```swift
+enum AppViews: ViewType {
+    case productList
+    case homeScreen
+    
+    var name: String {
+        switch self {
+        case .productList: return "product_list"
+        case .homeScreen: return "home_screen"
+        }
+    }
+    
+    var parameters: [String: AnyHashable]? {
+        switch self {
+        case .productList: return ["item_count": products.count]
+        case .homeScreen: return ["user_type": "premium"]
+        }
+    }
+}
+
 struct ProductListView: View {
     var body: some View {
         List(products) { product in
             ProductRow(product: product)
-                .analyticsOnTap(ProductTapEvent(productId: product.id))
+                .analyticsOnTap(AppEvents.productViewed)
         }
-        .analyticsView(ProductListScreen())
+        .analyticsView(AppViews.productList)
     }
 }
 ```

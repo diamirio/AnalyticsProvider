@@ -8,24 +8,37 @@ import Foundation
 /// 
 /// Example:
 /// ```swift
-/// struct HomeScreen: ViewType {
-///     let name = "home_screen"
-///     let parameters = ["user_type": "premium"]
+/// enum AppViews: ViewType {
+///     case homeScreen
+///     case profileScreen
+///     
+///     var name: String {
+///         switch self {
+///         case .homeScreen: return "home_screen"
+///         case .profileScreen: return "profile_screen"
+///         }
+///     }
+///     
+///     var parameters: [String: AnyHashable]? {
+///         switch self {
+///         case .homeScreen: return ["user_type": "premium"]
+///         case .profileScreen: return nil
+///         }
+///     }
 /// }
 /// ```
 public protocol ViewType: Sendable {
-    
 	/// The unique name identifier for this view
 	var name: String { get }
     
 	/// Optional dictionary of additional parameters for context
-	var parameters: [AnyHashable: AnyHashable]? { get }
+	var parameters: [String: AnyHashable]? { get }
 }
 
 public extension ViewType {
     
 	/// Default implementation returns nil for parameters
-	var parameters: [AnyHashable: AnyHashable]? { nil }
+	var parameters: [String: AnyHashable]? { nil }
 }
 
 /// A protocol representing an event that can be tracked for analytics.
@@ -36,24 +49,34 @@ public extension ViewType {
 /// 
 /// Example:
 /// ```swift
-/// struct ButtonClickEvent: EventType {
-///     let name = "button_clicked"
-///     let parameters = ["button_id": "login", "screen": "home"]
+/// enum AppEvents: String, EventType {
+///     case buttonClicked = "button_clicked"
+///     case userLogin = "user_login"
+///     
+///     var name: String {
+///         self.rawValue
+///     }
+///     
+///     var parameters: [String: AnyHashable]? {
+///         switch self {
+///         case .buttonClicked: return ["button_id": "login", "screen": "home"]
+///         case .userLogin: return ["method": "email"]
+///         }
+///     }
 /// }
 /// ```
 public protocol EventType: Sendable {
-    
 	/// The unique name identifier for this event
 	var name: String { get }
     
 	/// Optional dictionary of additional parameters for context
-	var parameters: [AnyHashable: AnyHashable]? { get }
+	var parameters: [String: AnyHashable]? { get }
 }
 
 public extension EventType {
     
 	/// Default implementation returns nil for parameters
-	var parameters: [AnyHashable: AnyHashable]? { nil }
+	var parameters: [String: AnyHashable]? { nil }
 }
 
 /// A protocol representing a purchase transaction that can be tracked for analytics.
@@ -132,8 +155,7 @@ public extension PurchaseType {
 ///     // ... implement other methods
 /// }
 /// ```
-public protocol AnalyticsProvider: Sendable {
-    
+public protocol AnalyticsProvider {
 	/// Log a view tracking event
 	/// - Parameter view: The view to track
 	func log(_ view: ViewType)
@@ -163,9 +185,9 @@ public protocol AnalyticsProvider: Sendable {
 /// ```swift
 /// let analytics = Analytics()
 /// analytics.register(providers: [FirebaseProvider(), MixpanelProvider()])
-/// analytics.log(MyEvent(name: "user_action"))
+/// analytics.log(AppEvents.buttonClicked)
+/// analytics.log(AppViews.homeScreen)
 /// ```
-@MainActor
 public class Analytics {
     
 	/// Array of registered analytics providers
