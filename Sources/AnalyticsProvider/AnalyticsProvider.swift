@@ -212,8 +212,9 @@ public class Analytics {
 	/// providers multiple times to add more providers to the existing list.
 	/// 
 	/// - Parameter analyticsProviders: Array of providers to register
-	public func register(providers analyticsProviders: [AnalyticsProvider]) {
+public func register(providers analyticsProviders: [AnalyticsProvider]) {
 		providers.append(contentsOf: analyticsProviders)
+		analyticsProviders.forEach { $0.setAnalyticsEnabled(analyticsEnabled) }
 	}
     
     /// Enable or disable all analytics collection
