@@ -12,6 +12,10 @@ final class TestAnalyticsProvider: AnalyticsProvider {
     var loggedPurchases: [PurchaseType] = []
     var userProperties: [String: String?] = [:]
     
+    func setAnalyticsEnabled(_ enabled: Bool) {
+        
+    }
+    
     func log(_ view: ViewType) {
         loggedViews.append(view)
     }
@@ -41,7 +45,7 @@ final class TestAnalyticsProvider: AnalyticsProvider {
 @MainActor
 @Test("Environment analytics value setting and retrieval")
 func environmentAnalyticsValueSettingAndRetrieval() {
-    let analytics = Analytics()
+    let analytics = Analytics(analyticsEnabled: true)
     let provider = TestAnalyticsProvider()
     analytics.register(providers: [provider])
     
@@ -73,10 +77,10 @@ func environmentAnalyticsNilByDefault() {
         }
     }
     
-    let view = TestContentView()
+    _ = TestContentView()
     
     // This test verifies that the environment value exists and can be nil
-    #expect(view != nil)
+    #expect(true)
 }
 
 // MARK: - View Modifier API Tests
@@ -84,50 +88,50 @@ func environmentAnalyticsNilByDefault() {
 @MainActor
 @Test("analyticsOnTap single event modifier compiles")
 func analyticsOnTapSingleEventModifierCompiles() {
-    let view = Button("Test") {}
+    _ = Button("Test") {}
         .analyticsOnTap(AppEvents.mock)
     
-    #expect(view != nil)
+    #expect(true)
 }
 
 @MainActor
 @Test("analyticsOnTap multiple events modifier compiles")
 func analyticsOnTapMultipleEventsModifierCompiles() {
-    let view = Button("Test") {}
+    _ = Button("Test") {}
         .analyticsOnTap(AppEvents.mock, AppEvents.mock)
     
-    #expect(view != nil)
+    #expect(true)
 }
 
 @MainActor
 @Test("analyticsView modifier compiles")
 func analyticsViewModifierCompiles() {
-    let view = VStack {
+    _ = VStack {
         Text("Test")
     }
     .analyticsView(AppViews.mock)
     
-    #expect(view != nil)
+    #expect(true)
 }
 
 @MainActor
 @Test("Chain multiple analytics modifiers")
 func chainMultipleAnalyticsModifiers() {
-    let view = Button("Test") {}
+    _ = Button("Test") {}
         .analyticsOnTap(AppEvents.mock)
         .analyticsView(AppViews.mock)
     
-    #expect(view != nil)
+    #expect(true)
 }
 
 @MainActor
 @Test("Analytics modifiers with SwiftUI environment")
 func analyticsModifiersWithSwiftUIEnvironment() {
-    let analytics = Analytics()
+    let analytics = Analytics(analyticsEnabled: true)
     let provider = TestAnalyticsProvider()
     analytics.register(providers: [provider])
     
-    let view = VStack {
+    _ = VStack {
         Button("Test") {}
             .analyticsOnTap(AppEvents.mock)
         Text("Content")
@@ -135,7 +139,7 @@ func analyticsModifiersWithSwiftUIEnvironment() {
     .analyticsView(AppViews.mock)
     .environment(\.analytics, analytics)
     
-    #expect(view != nil)
+    #expect(true)
 }
 
 // MARK: - Modifier Behavior Tests
@@ -148,9 +152,9 @@ func analyticsOnTapModifierStructure() {
     // We can't directly instantiate the private modifier, but we can test
     // that the public API creates the expected view hierarchy
     let baseView = Text("Test")
-    let modifiedView = baseView.analyticsOnTap(AppEvents.mock)
+    _ = baseView.analyticsOnTap(AppEvents.mock)
     
-    #expect(modifiedView != nil)
+    #expect(true)
 }
 
 @MainActor
@@ -159,9 +163,9 @@ func analyticsViewModifierStructure() {
     // We can't directly instantiate the private modifier, but we can test
     // that the public API creates the expected view hierarchy
     let baseView = Text("Test")
-    let modifiedView = baseView.analyticsView(AppViews.mock)
+    _ = baseView.analyticsView(AppViews.mock)
     
-    #expect(modifiedView != nil)
+    #expect(true)
 }
 
 // MARK: - Complex View Hierarchy Tests
@@ -169,7 +173,7 @@ func analyticsViewModifierStructure() {
 @MainActor
 @Test("Nested views with analytics modifiers")
 func nestedViewsWithAnalyticsModifiers() {
-    let analytics = Analytics()
+    let analytics = Analytics(analyticsEnabled: true)
     let provider = TestAnalyticsProvider()
     analytics.register(providers: [provider])
     
@@ -191,19 +195,19 @@ func nestedViewsWithAnalyticsModifiers() {
         }
     }
     
-    let view = NestedTestView()
+    _ = NestedTestView()
         .environment(\.analytics, analytics)
     
-    #expect(view != nil)
+    #expect(true)
 }
 
 @MainActor
 @Test("Multiple event types on same view")
 func multipleEventTypesOnSameView() {
-    let view = Button("Multi Action") {}
+    _ = Button("Multi Action") {}
         .analyticsOnTap(AppEvents.mock, AppEvents.mock, AppEvents.mock)
     
-    #expect(view != nil)
+    #expect(true)
 }
 
 // MARK: - Integration Tests
@@ -211,7 +215,7 @@ func multipleEventTypesOnSameView() {
 @MainActor
 @Test("Complete analytics flow compilation")
 func completeAnalyticsFlowCompilation() {
-    let analytics = Analytics()
+    let analytics = Analytics(analyticsEnabled: true)
     let provider = TestAnalyticsProvider()
     analytics.register(providers: [provider])
     
@@ -247,11 +251,9 @@ func completeAnalyticsFlowCompilation() {
         }
     }
     
-    let view = CompleteTestView()
+    _ = CompleteTestView()
     
-    #expect(view != nil)
-    #expect(analytics != nil)
-    #expect(provider != nil)
+    #expect(true)
 }
 
 #endif

@@ -77,6 +77,12 @@ final class MockAnalyticsProvider: AnalyticsProvider {
     var loggedPurchases: [PurchaseType] = []
     var userProperties: [String: String?] = [:]
     
+    var isEnabled: Bool = true
+    
+    func setAnalyticsEnabled(_ enabled: Bool) {
+        isEnabled = enabled
+    }
+    
     func log(_ view: ViewType) {
         loggedViews.append(view)
     }
@@ -105,13 +111,14 @@ final class MockAnalyticsProvider: AnalyticsProvider {
 
 @Test("Analytics initialization")
 func analyticsInitialization() {
-    let analytics = Analytics()
-    #expect(analytics != nil)
+    _ = Analytics(analyticsEnabled: true)
+    
+    #expect(true)
 }
 
 @Test("Register single provider")
 func registerSingleProvider() {
-    let analytics = Analytics()
+    let analytics = Analytics(analyticsEnabled: true)
     let provider = MockAnalyticsProvider()
     
     analytics.register(providers: [provider])
@@ -125,7 +132,7 @@ func registerSingleProvider() {
 
 @Test("Register multiple providers")
 func registerMultipleProviders() {
-    let analytics = Analytics()
+    let analytics = Analytics(analyticsEnabled: true)
     let provider1 = MockAnalyticsProvider()
     let provider2 = MockAnalyticsProvider()
     
@@ -142,7 +149,7 @@ func registerMultipleProviders() {
 
 @Test("Register providers multiple times")
 func registerProvidersMultipleTimes() {
-    let analytics = Analytics()
+    let analytics = Analytics(analyticsEnabled: true)
     let provider1 = MockAnalyticsProvider()
     let provider2 = MockAnalyticsProvider()
     
@@ -158,7 +165,7 @@ func registerProvidersMultipleTimes() {
 
 @Test("Log view to all providers")
 func logViewToAllProviders() {
-    let analytics = Analytics()
+    let analytics = Analytics(analyticsEnabled: true)
     let provider1 = MockAnalyticsProvider()
     let provider2 = MockAnalyticsProvider()
     
@@ -176,7 +183,7 @@ func logViewToAllProviders() {
 
 @Test("Log event to all providers")
 func logEventToAllProviders() {
-    let analytics = Analytics()
+    let analytics = Analytics(analyticsEnabled: true)
     let provider1 = MockAnalyticsProvider()
     let provider2 = MockAnalyticsProvider()
     
@@ -194,7 +201,7 @@ func logEventToAllProviders() {
 
 @Test("Log purchase to all providers")
 func logPurchaseToAllProviders() {
-    let analytics = Analytics()
+    let analytics = Analytics(analyticsEnabled: true)
     let provider1 = MockAnalyticsProvider()
     let provider2 = MockAnalyticsProvider()
     
@@ -213,7 +220,7 @@ func logPurchaseToAllProviders() {
 
 @Test("Set user property on all providers")
 func setUserPropertyOnAllProviders() {
-    let analytics = Analytics()
+    let analytics = Analytics(analyticsEnabled: true)
     let provider1 = MockAnalyticsProvider()
     let provider2 = MockAnalyticsProvider()
     
@@ -228,6 +235,55 @@ func setUserPropertyOnAllProviders() {
     #expect(provider2.userProperties["user_tier"] == .some("premium"))
     #expect(provider2.userProperties.keys.contains("temp_flag"))
     #expect(provider2.userProperties["temp_flag"] == .some(nil))
+}
+
+@Test("Set analytics enabled")
+func initWithFalseAndEnableAnalytics() {
+    let analytics = Analytics(analyticsEnabled: false)
+    let provider = MockAnalyticsProvider()
+    
+    analytics.register(providers: [provider])
+    
+    analytics.log(AppViews.mock)
+    analytics.log(AppEvents.mock)
+    analytics.log(MockPurchase(name: "product1"))
+    analytics.setUserProperty("test_value", for: "test_key")
+    
+    #expect(provider.loggedViews.count == 0)
+    #expect(provider.loggedEvents.count == 0)
+    #expect(provider.loggedPurchases.count == 0)
+    #expect(provider.userProperties.count == 0)
+    
+    analytics.setAnalyticsEnabled(true)
+    
+    analytics.log(AppViews.mock)
+    analytics.log(AppEvents.mock)
+    analytics.log(MockPurchase(name: "product1"))
+    analytics.setUserProperty("test_value", for: "test_key")
+    
+    #expect(provider.loggedViews.count == 1)
+    #expect(provider.loggedEvents.count == 1)
+    #expect(provider.loggedPurchases.count == 1)
+    #expect(provider.userProperties.count == 1)
+}
+
+@Test("Set analytics disabled")
+func setAnalyticsDisabled() {
+    let analytics = Analytics(analyticsEnabled: true)
+    let provider = MockAnalyticsProvider()
+    
+    analytics.register(providers: [provider])
+    analytics.setAnalyticsEnabled(false)
+    
+    analytics.log(AppViews.mock)
+    analytics.log(AppEvents.mock)
+    analytics.log(MockPurchase(name: "product1"))
+    analytics.setUserProperty("test_value", for: "test_key")
+    
+    #expect(provider.loggedViews.count == 0)
+    #expect(provider.loggedEvents.count == 0)
+    #expect(provider.loggedPurchases.count == 0)
+    #expect(provider.userProperties.count == 0)
 }
 
 // MARK: - Protocol Conformance Tests
@@ -302,7 +358,7 @@ func purchaseTypeWithAllProperties() {
 
 @Test("Log multiple events in sequence")
 func logMultipleEventsInSequence() {
-    let analytics = Analytics()
+    let analytics = Analytics(analyticsEnabled: true)
     let provider = MockAnalyticsProvider()
     
     analytics.register(providers: [provider])
@@ -320,7 +376,7 @@ func logMultipleEventsInSequence() {
 
 @Test("Mixed analytics calls")
 func mixedAnalyticsCalls() {
-    let analytics = Analytics()
+    let analytics = Analytics(analyticsEnabled: true)
     let provider = MockAnalyticsProvider()
     
     analytics.register(providers: [provider])
@@ -346,7 +402,7 @@ func mixedAnalyticsCalls() {
 
 @Test("Analytics with no providers")
 func analyticsWithNoProviders() {
-    let analytics = Analytics()
+    let analytics = Analytics(analyticsEnabled: true)
     
     // Should not crash when no providers are registered
     analytics.log(AppViews.mock)
@@ -355,13 +411,13 @@ func analyticsWithNoProviders() {
     analytics.setUserProperty("value", for: "key")
     
     // Test passes if no crashes occur
-    #expect(analytics != nil)
+    #expect(true)
 }
 
 
 @Test("Register empty provider array")
 func registerEmptyProviderArray() {
-    let analytics = Analytics()
+    let analytics = Analytics(analyticsEnabled: true)
     let provider = MockAnalyticsProvider()
     
     analytics.register(providers: [])

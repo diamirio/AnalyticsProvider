@@ -156,6 +156,10 @@ public extension PurchaseType {
 /// }
 /// ```
 public protocol AnalyticsProvider {
+    /// Enable or disable all analytics collection
+    /// - Parameter enabled: Whether analytics collection should be enabled or not.
+    func setAnalyticsEnabled(_ enabled: Bool)
+    
 	/// Log a view tracking event
 	/// - Parameter view: The view to track
 	func log(_ view: ViewType)
@@ -190,12 +194,16 @@ public protocol AnalyticsProvider {
 /// ```
 public class Analytics {
     
+    /// Whether analytics collection is currently enabled or not
+    public private(set) var analyticsEnabled: Bool
+    
 	/// Array of registered analytics providers
 	private var providers = [AnalyticsProvider]()
 	
 	/// Initialize a new Analytics instance
-	public init() {
-		
+	public init(analyticsEnabled: Bool) {
+        self.analyticsEnabled = analyticsEnabled
+        setAnalyticsEnabled(analyticsEnabled)
 	}
 	
 	/// Register one or more analytics providers
@@ -207,6 +215,14 @@ public class Analytics {
 	public func register(providers analyticsProviders: [AnalyticsProvider]) {
 		providers.append(contentsOf: analyticsProviders)
 	}
+    
+    /// Enable or disable all analytics collection
+    /// - Parameter enabled: Whether analytics collection should be enabled or not.
+    public func setAnalyticsEnabled(_ enabled: Bool) {
+        analyticsEnabled = enabled
+        
+        providers.forEach { $0.setAnalyticsEnabled(enabled) }
+    }
 	
 	/// Log a view tracking event to all registered providers
 	/// 
@@ -215,6 +231,8 @@ public class Analytics {
 	/// 
 	/// - Parameter view: The view to track
 	public func log(_ view: ViewType) {
+        guard analyticsEnabled else { return }
+        
 		providers.forEach { $0.log(view) }
 	}
 
@@ -225,6 +243,8 @@ public class Analytics {
 	/// 
 	/// - Parameter event: The event to track
 	public func log(_ event: EventType) {
+        guard analyticsEnabled else { return }
+        
 		providers.forEach { $0.log(event) }
 	}
 
@@ -235,6 +255,8 @@ public class Analytics {
 	/// 
 	/// - Parameter purchase: The purchase transaction to track
 	public func log(_ purchase: PurchaseType) {
+        guard analyticsEnabled else { return }
+        
 		providers.forEach { $0.log(purchase) }
 	}
 
@@ -247,6 +269,8 @@ public class Analytics {
 	///   - value: The property value (pass nil to remove the property)
 	///   - key: The property key identifier
 	public func setUserProperty(_ value: String?, for key: String) {
+        guard analyticsEnabled else { return }
+        
 		providers.forEach { $0.setUserProperty(value, for: key) }
 	}
 }
