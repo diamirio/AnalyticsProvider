@@ -33,6 +33,11 @@ Implement the `AnalyticsProvider` protocol for your analytics services:
 import AnalyticsProvider
 
 struct FirebaseProvider: AnalyticsProvider {
+
+    func setAnalyticsEnabled(_ enabled: Bool) {
+        // Enable or disable Analytics
+    }
+    
     func log(_ view: ViewType) {
         // Firebase view tracking
     }
@@ -54,11 +59,19 @@ struct FirebaseProvider: AnalyticsProvider {
 ### 2. Setup Analytics
 
 ```swift
-let analytics = Analytics()
+let analytics = Analytics(analyticsEnabled: true)
 analytics.register(providers: [FirebaseProvider(), MixpanelProvider()])
 ```
 
-### 3. Track Events
+`analyticsEnabled` has no default and must be passed explicitly, so you decide up front whether tracking starts out enabled or disabled (e.g. disabled until a user grants consent), and call `setAnalyticsEnabled(true)` once they opt in.
+
+### 3. Enable or disable Analytics
+
+```swift
+analytics.setAnalyticsEnabled(false)
+```
+
+### 4. Track Events
 
 ```swift
 // Define your events using enums
@@ -82,7 +95,7 @@ enum AppEvents: String, EventType {
 analytics.log(AppEvents.buttonClicked)
 ```
 
-### 4. SwiftUI Integration
+### 5. SwiftUI Integration
 
 ```swift
 struct ContentView: View {
@@ -182,7 +195,7 @@ struct ProductListView: View {
 ## Thread Safety
 
 - All protocols conform to `Sendable` for safe concurrent usage
-- `Analytics` class uses `@MainActor` for main thread execution
+- `Analytics` is not thread-isolated; call its methods from a single thread (typically the main thread) or synchronize access yourself
 - Provider implementations should ensure thread-safe logging
 
 ## Requirements
