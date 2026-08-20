@@ -179,13 +179,6 @@ public protocol AnalyticsProvider {
 	func setUserProperty(_ value: String?, for key: String)
 }
 
-public extension AnalyticsProvider {
-    /// Default no-op implementation so existing conformers continue to compile
-    /// without having to implement enable/disable support.
-    /// - Parameter enabled: Whether analytics collection should be enabled or not.
-    func setAnalyticsEnabled(_ enabled: Bool) { }
-}
-
 /// The main analytics manager class that coordinates multiple analytics providers.
 /// 
 /// This class acts as a central hub for analytics tracking, allowing you to register
