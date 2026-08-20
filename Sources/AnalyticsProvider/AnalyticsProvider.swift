@@ -208,8 +208,8 @@ public class Analytics {
 	private var providers = [AnalyticsProvider]()
 	
 	/// Initialize a new Analytics instance
-	/// - Parameter analyticsEnabled: Whether analytics collection should start out enabled. Defaults to `true`.
-	public init(analyticsEnabled: Bool = true) {
+	/// - Parameter analyticsEnabled: Whether analytics collection should start out enabled.
+	public init(analyticsEnabled: Bool) {
         self.analyticsEnabled = analyticsEnabled
         setAnalyticsEnabled(analyticsEnabled)
 	}
