@@ -195,7 +195,7 @@ struct ProductListView: View {
 ## Thread Safety
 
 - All protocols conform to `Sendable` for safe concurrent usage
-- `Analytics` class uses `@MainActor` for main thread execution
+- `Analytics` is not thread-isolated; call its methods from a single thread (typically the main thread) or synchronize access yourself
 - Provider implementations should ensure thread-safe logging
 
 ## Requirements
