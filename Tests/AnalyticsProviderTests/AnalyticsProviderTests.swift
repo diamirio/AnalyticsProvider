@@ -111,9 +111,11 @@ final class MockAnalyticsProvider: AnalyticsProvider {
 
 @Test("Analytics initialization")
 func analyticsInitialization() {
-    _ = Analytics(analyticsEnabled: true)
-    
-    #expect(true)
+    let enabledAnalytics = Analytics(analyticsEnabled: true)
+    #expect(enabledAnalytics.analyticsEnabled == true)
+
+    let disabledAnalytics = Analytics(analyticsEnabled: false)
+    #expect(disabledAnalytics.analyticsEnabled == false)
 }
 
 @Test("Register single provider")
@@ -243,24 +245,28 @@ func initWithFalseAndEnableAnalytics() {
     let provider = MockAnalyticsProvider()
     
     analytics.register(providers: [provider])
-    
+
+    #expect(provider.isEnabled == false)
+
     analytics.log(AppViews.mock)
     analytics.log(AppEvents.mock)
     analytics.log(MockPurchase(name: "product1"))
     analytics.setUserProperty("test_value", for: "test_key")
-    
+
     #expect(provider.loggedViews.count == 0)
     #expect(provider.loggedEvents.count == 0)
     #expect(provider.loggedPurchases.count == 0)
     #expect(provider.userProperties.count == 0)
-    
+
     analytics.setAnalyticsEnabled(true)
-    
+
+    #expect(provider.isEnabled == true)
+
     analytics.log(AppViews.mock)
     analytics.log(AppEvents.mock)
     analytics.log(MockPurchase(name: "product1"))
     analytics.setUserProperty("test_value", for: "test_key")
-    
+
     #expect(provider.loggedViews.count == 1)
     #expect(provider.loggedEvents.count == 1)
     #expect(provider.loggedPurchases.count == 1)
@@ -274,7 +280,9 @@ func setAnalyticsDisabled() {
     
     analytics.register(providers: [provider])
     analytics.setAnalyticsEnabled(false)
-    
+
+    #expect(provider.isEnabled == false)
+
     analytics.log(AppViews.mock)
     analytics.log(AppEvents.mock)
     analytics.log(MockPurchase(name: "product1"))
@@ -403,15 +411,15 @@ func mixedAnalyticsCalls() {
 @Test("Analytics with no providers")
 func analyticsWithNoProviders() {
     let analytics = Analytics(analyticsEnabled: true)
-    
+
     // Should not crash when no providers are registered
     analytics.log(AppViews.mock)
     analytics.log(AppEvents.mock)
     analytics.log(MockPurchase())
     analytics.setUserProperty("value", for: "key")
-    
-    // Test passes if no crashes occur
-    #expect(true)
+
+    // No providers were registered, so the enabled state should be unaffected
+    #expect(analytics.analyticsEnabled == true)
 }
 
 

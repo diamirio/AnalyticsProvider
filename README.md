@@ -63,6 +63,8 @@ let analytics = Analytics(analyticsEnabled: true)
 analytics.register(providers: [FirebaseProvider(), MixpanelProvider()])
 ```
 
+`analyticsEnabled` defaults to `true`, so `Analytics()` behaves the same as `Analytics(analyticsEnabled: true)`. Pass `false` if you want tracking to start out disabled (e.g. until a user grants consent), and call `setAnalyticsEnabled(true)` once they opt in.
+
 ### 3. Enable or disable Analytics
 
 ```swift

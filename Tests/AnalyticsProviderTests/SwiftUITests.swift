@@ -48,39 +48,19 @@ func environmentAnalyticsValueSettingAndRetrieval() {
     let analytics = Analytics(analyticsEnabled: true)
     let provider = TestAnalyticsProvider()
     analytics.register(providers: [provider])
-    
-    struct TestContentView: View {
-        @Environment(\.analytics) var analytics
-        @State var hasAnalytics = false
-        
-        var body: some View {
-            Text("Test")
-                .onAppear {
-                    hasAnalytics = analytics != nil
-                }
-        }
-    }
-    
-    // Test that environment value can be set and retrieved
-    _ = TestContentView()
-        .environment(\.analytics, analytics)
+
+    var environmentValues = EnvironmentValues()
+    #expect(environmentValues.analytics == nil)
+
+    environmentValues.analytics = analytics
+    #expect(environmentValues.analytics === analytics)
 }
 
 @MainActor
 @Test("Environment analytics nil by default")
 func environmentAnalyticsNilByDefault() {
-    struct TestContentView: View {
-        @Environment(\.analytics) var analytics
-        
-        var body: some View {
-            Text("Test")
-        }
-    }
-    
-    _ = TestContentView()
-    
-    // This test verifies that the environment value exists and can be nil
-    #expect(true)
+    let environmentValues = EnvironmentValues()
+    #expect(environmentValues.analytics == nil)
 }
 
 // MARK: - View Modifier API Tests
@@ -88,40 +68,42 @@ func environmentAnalyticsNilByDefault() {
 @MainActor
 @Test("analyticsOnTap single event modifier compiles")
 func analyticsOnTapSingleEventModifierCompiles() {
-    _ = Button("Test") {}
+    let view = Button("Test") {}
         .analyticsOnTap(AppEvents.mock)
-    
-    #expect(true)
+
+    #expect(String(describing: type(of: view)).contains("AnalyticsOnTapModifier"))
 }
 
 @MainActor
 @Test("analyticsOnTap multiple events modifier compiles")
 func analyticsOnTapMultipleEventsModifierCompiles() {
-    _ = Button("Test") {}
+    let view = Button("Test") {}
         .analyticsOnTap(AppEvents.mock, AppEvents.mock)
-    
-    #expect(true)
+
+    #expect(String(describing: type(of: view)).contains("AnalyticsOnTapModifier"))
 }
 
 @MainActor
 @Test("analyticsView modifier compiles")
 func analyticsViewModifierCompiles() {
-    _ = VStack {
+    let view = VStack {
         Text("Test")
     }
     .analyticsView(AppViews.mock)
-    
-    #expect(true)
+
+    #expect(String(describing: type(of: view)).contains("AnalyticsViewModifier"))
 }
 
 @MainActor
 @Test("Chain multiple analytics modifiers")
 func chainMultipleAnalyticsModifiers() {
-    _ = Button("Test") {}
+    let view = Button("Test") {}
         .analyticsOnTap(AppEvents.mock)
         .analyticsView(AppViews.mock)
-    
-    #expect(true)
+
+    let typeDescription = String(describing: type(of: view))
+    #expect(typeDescription.contains("AnalyticsOnTapModifier"))
+    #expect(typeDescription.contains("AnalyticsViewModifier"))
 }
 
 @MainActor
@@ -130,16 +112,18 @@ func analyticsModifiersWithSwiftUIEnvironment() {
     let analytics = Analytics(analyticsEnabled: true)
     let provider = TestAnalyticsProvider()
     analytics.register(providers: [provider])
-    
-    _ = VStack {
+
+    let view = VStack {
         Button("Test") {}
             .analyticsOnTap(AppEvents.mock)
         Text("Content")
     }
     .analyticsView(AppViews.mock)
     .environment(\.analytics, analytics)
-    
-    #expect(true)
+
+    let typeDescription = String(describing: type(of: view))
+    #expect(typeDescription.contains("AnalyticsOnTapModifier"))
+    #expect(typeDescription.contains("AnalyticsViewModifier"))
 }
 
 // MARK: - Modifier Behavior Tests
@@ -152,9 +136,9 @@ func analyticsOnTapModifierStructure() {
     // We can't directly instantiate the private modifier, but we can test
     // that the public API creates the expected view hierarchy
     let baseView = Text("Test")
-    _ = baseView.analyticsOnTap(AppEvents.mock)
-    
-    #expect(true)
+    let view = baseView.analyticsOnTap(AppEvents.mock)
+
+    #expect(String(describing: type(of: view)).contains("AnalyticsOnTapModifier"))
 }
 
 @MainActor
@@ -163,9 +147,9 @@ func analyticsViewModifierStructure() {
     // We can't directly instantiate the private modifier, but we can test
     // that the public API creates the expected view hierarchy
     let baseView = Text("Test")
-    _ = baseView.analyticsView(AppViews.mock)
-    
-    #expect(true)
+    let view = baseView.analyticsView(AppViews.mock)
+
+    #expect(String(describing: type(of: view)).contains("AnalyticsViewModifier"))
 }
 
 // MARK: - Complex View Hierarchy Tests
@@ -176,38 +160,34 @@ func nestedViewsWithAnalyticsModifiers() {
     let analytics = Analytics(analyticsEnabled: true)
     let provider = TestAnalyticsProvider()
     analytics.register(providers: [provider])
-    
-    struct NestedTestView: View {
-        var body: some View {
-            VStack {
-                Button("Action 1") {}
-                    .analyticsOnTap(AppEvents.mock)
-                
-                HStack {
-                    Button("Action 2") {}
-                        .analyticsOnTap(AppEvents.mock)
-                    
-                    Text("Label")
-                        .analyticsView(AppViews.mock)
-                }
-            }
-            .analyticsView(AppViews.mock)
+
+    let view = VStack {
+        Button("Action 1") {}
+            .analyticsOnTap(AppEvents.mock)
+
+        HStack {
+            Button("Action 2") {}
+                .analyticsOnTap(AppEvents.mock)
+
+            Text("Label")
+                .analyticsView(AppViews.mock)
         }
     }
-    
-    _ = NestedTestView()
-        .environment(\.analytics, analytics)
-    
-    #expect(true)
+    .analyticsView(AppViews.mock)
+    .environment(\.analytics, analytics)
+
+    let typeDescription = String(describing: type(of: view))
+    #expect(typeDescription.contains("AnalyticsOnTapModifier"))
+    #expect(typeDescription.contains("AnalyticsViewModifier"))
 }
 
 @MainActor
 @Test("Multiple event types on same view")
 func multipleEventTypesOnSameView() {
-    _ = Button("Multi Action") {}
+    let view = Button("Multi Action") {}
         .analyticsOnTap(AppEvents.mock, AppEvents.mock, AppEvents.mock)
-    
-    #expect(true)
+
+    #expect(String(describing: type(of: view)).contains("AnalyticsOnTapModifier"))
 }
 
 // MARK: - Integration Tests
@@ -252,8 +232,12 @@ func completeAnalyticsFlowCompilation() {
     }
     
     _ = CompleteTestView()
-    
-    #expect(true)
+
+    // CompleteTestView reads `\.analytics` via `@Environment` internally, so its opaque
+    // `body` type can't be introspected from here (unlike the modifier-chain tests above).
+    // This test's purpose is to guarantee the whole hierarchy - NavigationView, List,
+    // ForEach, and chained modifiers - still compiles against the public API. A Swift
+    // Testing test passes as long as it returns without throwing, so no assertion is needed.
 }
 
 #endif
