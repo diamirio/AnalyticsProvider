@@ -1,6 +1,6 @@
 ---
 name: analyticsProvider
-description: Integrate and use the diamirio AnalyticsProvider Swift package (protocol-based, multi-provider analytics with SwiftUI modifiers). Use when adding AnalyticsProvider to an app via SPM, writing an `AnalyticsProvider` adapter for Firebase/Mixpanel/etc., defining `ViewType`/`EventType`/`PurchaseType` values, wiring the `Analytics` instance into SwiftUI with `.environment(\.analytics, …)`, using `.analyticsView` / `.analyticsOnTap`, handling consent with `setAnalyticsEnabled`, or writing tests against a mock provider.
+description: Integrate and use the diamirio AnalyticsProvider Swift package (protocol-based, multi-provider analytics with SwiftUI modifiers). Use when adding AnalyticsProvider to an app via SPM, writing an `AnalyticsProvider` adapter for Firebase/Mixpanel/etc., defining `ViewType`/`EventType`/`PurchaseType` values, wiring the `Analytics` instance into SwiftUI with `.environment(\.analytics, …)`, using `.analyticsView` / `.analyticsOnTap`, handling consent with `setAnalyticsEnabled`, or writing tests against a spy provider.
 ---
 
 # AnalyticsProvider
@@ -269,13 +269,13 @@ Notes:
 
 ## 9. Testing
 
-Use a recording mock provider:
+Use Swift Testing with a spy provider that records every call, and assert what was logged:
 
 ```swift
+// TestSupport/AnalyticsProviderSpy.swift
 import AnalyticsProvider
-import Testing
 
-final class RecordingAnalyticsProvider: AnalyticsProvider {
+final class AnalyticsProviderSpy: AnalyticsProvider {
     private(set) var enabled: Bool?
     private(set) var views: [String] = []
     private(set) var events: [String] = []
@@ -288,28 +288,47 @@ final class RecordingAnalyticsProvider: AnalyticsProvider {
     func log(_ purchase: PurchaseType) { purchases.append(purchase.transactionId) }
     func setUserProperty(_ value: String?, for key: String) { userProperties[key] = value }
 }
+```
 
-@Test func logoutIsTracked() {
-    let provider = RecordingAnalyticsProvider()
-    let analytics = Analytics(analyticsEnabled: true)
-    analytics.register(providers: [provider])
+```swift
+import AnalyticsProvider
+import Testing
+@testable import MyApp
 
-    analytics.log(AppEvent.logout)
+struct AnalyticsTrackingTests {
+    let provider = AnalyticsProviderSpy()
 
-    #expect(provider.events == ["logout"])
-}
+    @Test("Logout is tracked")
+    func logoutIsTracked() {
+        // Given
+        let sut = Analytics(analyticsEnabled: true)
+        sut.register(providers: [provider])
 
-@Test func nothingIsTrackedWithoutConsent() {
-    let provider = RecordingAnalyticsProvider()
-    let analytics = Analytics(analyticsEnabled: false)
-    analytics.register(providers: [provider])
+        // When
+        sut.log(AppEvent.logout)
 
-    analytics.log(AppEvent.logout)
+        // Then
+        #expect(provider.events == ["logout"])
+    }
 
-    #expect(provider.events.isEmpty)
-    #expect(provider.enabled == false)
+    @Test("Nothing is tracked without consent")
+    func nothingIsTrackedWithoutConsent() {
+        // Given
+        let sut = Analytics(analyticsEnabled: false)
+        sut.register(providers: [provider])
+
+        // When
+        sut.log(AppEvent.logout)
+
+        // Then
+        #expect(provider.events.isEmpty)
+        #expect(provider.enabled == false)
+    }
 }
 ```
+
+- In feature code, test that a reactor or view model logs the right event: inject an `Analytics` with the spy registered and assert `provider.events`.
+- Tracking from SwiftUI modifiers (`.analyticsView`, `.analyticsOnTap`) is not unit-testable; keep the event values in testable code and cover the modifiers with UI tests only if tracking is business-critical.
 
 ## 10. Thread safety
 
@@ -326,4 +345,4 @@ final class RecordingAnalyticsProvider: AnalyticsProvider {
 5. Define `ViewType` / `EventType` enums (and `PurchaseType` structs with real transaction IDs).
 6. Use `.analyticsView` for screens, `.analyticsOnTap` for taps, `analytics.log(...)` elsewhere.
 7. Wire the consent UI to `setAnalyticsEnabled(_:)` and persist the choice.
-8. Cover tracking with a recording mock provider in tests.
+8. Cover tracking with a spy provider in tests.
