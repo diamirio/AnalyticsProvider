@@ -1,5 +1,5 @@
 ---
-name: analyticsProvider
+name: analytics-provider
 description: Integrate and use the diamirio AnalyticsProvider Swift package (protocol-based, multi-provider analytics with SwiftUI modifiers). Use when adding AnalyticsProvider to an app via SPM, writing an `AnalyticsProvider` adapter for Firebase/Mixpanel/etc., defining `ViewType`/`EventType`/`PurchaseType` values, wiring the `Analytics` instance into SwiftUI with `.environment(\.analytics, …)`, using `.analyticsView` / `.analyticsOnTap`, handling consent with `setAnalyticsEnabled`, or writing tests against a spy provider.
 ---
 
